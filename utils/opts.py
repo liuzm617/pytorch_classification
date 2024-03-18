@@ -66,4 +66,4 @@ parser.add_argument('--output', type=str, default='./outputs', help='save dir fo
 
 
 parser.add_argument('--backend', default='nccl', type=str, help='Pytorch DDP backend')
-parser.add_argument('--local_rank', default=-1, type=int, help='DDP local rank')
+parser.add_argument('--local-rank', default=-1, type=int, help='DDP local rank')
