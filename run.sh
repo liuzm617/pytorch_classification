@@ -1,10 +1,17 @@
 #!/bin/bash
 TIME=$(date "+%Y-%m-%d-%H-%M-%S")
 
+#todo:
+#1. 修改数据集路径
+DATASET_PATH=/e/hug/opts/animals
 
 OUTPUT_PATH=./outputs
-TRAIN_LIST=./sample_files/imgs/listfile.txt
-VAL_LIST=./sample_files/imgs/listfile.txt
+#TRAIN_LIST=./sample_files/imgs/listfile.txt
+#VAL_LIST=./sample_files/imgs/listfile.txt
+
+TRAIN_LIST=$DATASET_PATH/train_labels.txt
+VAL_LIST=$DATASET_PATH/test_labels.txt
+
 
 export RANK=0
 export LOCAL_RANK=0
@@ -13,7 +20,7 @@ export WORLD_SIZE=2
 #train
 # CUDA_VISIBLE_DEVICES=0,1,2,3 \
 python -u -m torch.distributed.launch --nproc_per_node 1  ./tools/train_val.py \
-   --model_name=resnet18 \
+   --model_name=resnet101 \
    --lr  0.01 --epochs 70  --batch-size 128  -j 4 \
    --output=$OUTPUT_PATH/$TIME \
    --train_list=$TRAIN_LIST \

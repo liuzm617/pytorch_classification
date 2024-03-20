@@ -1,4 +1,5 @@
 import os
+import string
 from PIL import Image
 
 import torch
@@ -15,7 +16,10 @@ class ImageInfo:
 
     @property
     def label(self):
-        return int(self._data[1])
+        try:
+            return int(self._data[1])
+        except ValueError:
+            return self._data[1]
 
 
 
@@ -32,8 +36,7 @@ class  ClsDataset(Dataset):
         lines = [x.strip().split('\t') for x in open(self.list_file, encoding='utf-8')]
         
         self.imgs_list = [ImageInfo(line) for line in lines]
-        
-        
+
 
     def __getitem__(self, index):
         img_info = self.imgs_list[index]
@@ -41,7 +44,7 @@ class  ClsDataset(Dataset):
         img = Image.open(img_info.path).convert('RGB')
         if self.transform != None:
             img =self.transform(img)
-        return img, torch.as_tensor(img_info.label, dtype=torch.long), img_info.path
+        return img, torch.as_tensor(img_info.label), img_info.path
  
     def __len__(self):
         return len(self.imgs_list)
