@@ -64,7 +64,7 @@ def train(rank, local_rank, device, args):
 
     # criterion = torch.nn.CrossEntropyLoss().to(device)
 
-    num_classes = list(set([i.label for i in val_dataset.imgs_list]))
+    num_classes = len(set([i.label for i in val_dataset.imgs_list]))
 
     model = ClsModel(args.model_name, num_classes, args.is_pretrained)
     print(model.base_model)
