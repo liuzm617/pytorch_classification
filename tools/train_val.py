@@ -64,7 +64,9 @@ def train(rank, local_rank, device, args):
 
     # criterion = torch.nn.CrossEntropyLoss().to(device)
 
-    model = ClsModel(args.model_name, args.num_classes, args.is_pretrained)
+    num_classes = list(set([i.label for i in val_dataset.imgs_list]))
+
+    model = ClsModel(args.model_name, num_classes, args.is_pretrained)
     print(model.base_model)
     model.to(device)
     # model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank, find_unused_parameters=True)
