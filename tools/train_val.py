@@ -63,9 +63,10 @@ def train(rank, local_rank, device, args):
         drop_last=True)
 
     # criterion = torch.nn.CrossEntropyLoss().to(device)
-
-    num_classes = len(set([i.label for i in val_dataset.imgs_list]))
-
+    num_classes = args.num_classes
+    if num_classes == 0:
+        num_classes = len(set([i.label for i in val_dataset.imgs_list]))
+    logger.info(f"Num classes = {num_classes}")
     model = ClsModel(args.model_name, num_classes, args.is_pretrained)
     print(model.base_model)
     model.to(device)
@@ -169,7 +170,7 @@ if __name__ == '__main__':
     # distributed_init(backend = args.backend)
     rank = int(os.environ["RANK"])
     local_rank = int(os.environ["LOCAL_RANK"])
-    # device = torch.device("cuda", local_rank)
+    # device = torch.device("cpu")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(args.train_list)
     args.world_size = int(os.environ["WORLD_SIZE"])

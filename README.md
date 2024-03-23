@@ -1,45 +1,13 @@
 
 ## 简介
 
-基于torchision实现的pytorch图像分类功能。
+pytorch图像分类功能。
 
-
-## 近期更新
-
-* 2022.11.05更新
-    - 新添加tensorrt c++的推理方案
-
-* 2022.10.29更新，进行代码重构，基本的功能基本一致。
-    - 支持pytorch ddp的训练
-    - 支持c++ libtorch的模型推理
-    - 支持script脚本一键运行
-    - 添加日志模块
-
-习惯之前版本的请看v1版本的代码：[V1版本](https://github.com/lxztju/pytorch_classification/tree/v1)。
-
-
-主要功能：
-
-利用pytorch实现图像分类，基于torchision可以扩展使用densenet，resnext，mobilenet，efficientnet，swin transformer等图像分类网络
-
-如果有用欢迎star
-
-## 实现功能
-* 基础功能利用pytorch实现图像分类
-* 包含带有warmup的cosine学习率调整
-* warmup的step学习率优调整
-* 多模型融合预测，加权与投票融合
-* 利用flask + redis实现模型云端api部署（tag v1）
-* c++ libtorch的模型部署
-* 使用tta测试时增强进行预测（tag v1）
-* 添加label smooth的pytorch实现（标签平滑）（tag v1）
-* 添加使用cnn提取特征，并使用SVM，RF，MLP，KNN等分类器进行分类（tag v1）。
-* 可视化特征层
 
 ## 运行环境
-* python3.7
-* pytorch 1.8.1
-* torchvision 0.9.1
+* python3.7+
+* pytorch 2.1.0(要使用gpu需要安装gpu驱动，并对应gpu包)
+* torchvision 0.16.0
 * opencv(libtorch cpp推理使用， 版本3.4.6)（可选）
 * libtorch cpp推理使用（可选）
 
@@ -48,7 +16,49 @@
 ## 快速开始
 
 ### 数据集形式
- 数据集的组织形式，参考[sample_files/imgs/listfile.txt](https://github.com/lxztju/pytorch_classification/blob/master/sample_files/imgs/listfile.txt)
+
+数据集组织形式：
+
+
+```
+├── dataset
+│   ├── train
+│   │   ├── num_classes(如1_小鹿)
+│   │   │   ├──1.png
+│   │   │   ├──2.png
+│   ├── test
+│   │   ├── num_classes
+│   │   │   ├──1.png
+│   │   │   ├──2.png
+│   ├── test_labels.txt (使用代码自动生成)
+│   ├── train_labels.txt (使用代码自动生成)
+
+```
+todo:
+
+数据集目录要求num_classes形式说明：  
+
+本身可以自动根据目录自动生成label,因其label值需要是数字类型，需要保证每次新增类别时，其他已有的label保持不变，比如训练了多个模型比如V1，V2版本，
+
+V1使用数据集a1(label=0),b1(label=1),c1(label=2);V2版本可能新增了数据集类型b11，如果自动处理则分类顺序可能会是a1(0),b1(1),b11(2),c1(3);
+
+如果预测的某个图片正好匹配到c1分类，此时V1版本输出为2，V2版本输出为3，不同版本结果(数字label)会不一致,
+
+虽然可以通过生成的labels转换成对应的真实分类名，但是如果此时V1版本的labels文件被覆盖或者其他原因丢失，
+
+那么V1模型使用V2的labels文件进行预测转换就会出问题，
+
+相反，如果保证每次新加数据集，使得数字 label值累加，那么所有版本模型都可以用最后生成的labels文件进行预测转换。
+
+### 自动生成labels.txt
+修改DATASET_PATH为数据集路径
+
+运行./generate_labels.sh 在数据集目录下下生成test_labels.txt、train_labels.txt
+
+文件内容组织格式：
+
+`文件路径 数字label 分类名`
+
 
 
 ### 训练 测试
@@ -58,7 +68,8 @@
 
 主要修改的参数：
 
-```
+DATASET_PATH 数据集路径
+
 OUTPUT_PATH 模型保存和log文件的路径
 
 TRAIN_LIST 训练数据集的list文件

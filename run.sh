@@ -17,21 +17,21 @@ export RANK=0
 export LOCAL_RANK=0
 export WORLD_SIZE=2
 #export MASTER_ADDR=127.0.0.1
-#train
+#训练
 # CUDA_VISIBLE_DEVICES=0,1,2,3 \
 python -u -m torch.distributed.launch --nproc_per_node 1  ./tools/train_val.py \
    --model_name=resnet101 \
-   --lr  0.01 --epochs 70  --batch-size 128  -j 4 \
+   --lr  0.01 --epochs 50  --batch-size 32  -j 4 \
    --output=$OUTPUT_PATH/$TIME \
    --train_list=$TRAIN_LIST \
    --val_list=$VAL_LIST \
-   --num_classes=2 \
+   --num_classes=8 \
    --is_pretrained
 
 
 
     
-    
+#评测
 # CUDA_VISIBLE_DEVICES=0,1,2,3 \
 # python3 -u -m torch.distributed.launch --nproc_per_node 1  ./tools/evaluation.py \
 #     --model_name=resnet18 \
@@ -42,6 +42,7 @@ python -u -m torch.distributed.launch --nproc_per_node 1  ./tools/train_val.py \
 #     --num_classes=2
     
 
+#预测
 # CUDA_VISIBLE_DEVICES=0,1,2,3 \
 # python3 -u -m torch.distributed.launch --nproc_per_node 1  ./tools/predict.py \
 #     --model_name=resnet18 \
