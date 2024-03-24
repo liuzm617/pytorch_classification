@@ -1,5 +1,5 @@
+from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR, CosineAnnealingLR
 
-from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR, CosineAnnealingLR, LambdaLR
 
 class GradualWarmupScheduler(_LRScheduler):
     """ Gradually warm-up(increasing) learning rate in optimizer.
@@ -60,8 +60,6 @@ class GradualWarmupScheduler(_LRScheduler):
         self.after_scheduler.load_state_dict(after_scheduler_state)
 
 
-
-        
 def get_scheduler(optimizer, n_iter_per_epoch, args):
     if "cosine" in args.lr_type:
         scheduler = CosineAnnealingLR(
@@ -72,13 +70,12 @@ def get_scheduler(optimizer, n_iter_per_epoch, args):
         scheduler = MultiStepLR(
             optimizer=optimizer,
             gamma=args.lr_decay_rate,
-            milestones=[(m - args.warmup_epoch) * n_iter_per_epoch for m in args.lr_steps])        
-        
+            milestones=[(m - args.warmup_epoch) * n_iter_per_epoch for m in args.lr_steps])
+
     else:
         raise NotImplementedError("scheduler not supported:" + args.lr_type)
 
-
-    if args.warmup_epoch != 0 :
+    if args.warmup_epoch != 0:
         scheduler = GradualWarmupScheduler(
             optimizer,
             multiplier=args.warmup_multiplier,

@@ -1,19 +1,15 @@
 import os
-import tqdm
-import time
-import shutil
-import torch.nn as nn
-import torch.optim as optim
-
-import numpy as np
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim
-from torch.nn import functional as F
-import torch.distributed as dist
-
 import sys
 from pathlib import Path
+
+import numpy as np
+import torch.backends.cudnn as cudnn
+import torch.distributed as dist
+import torch.nn as nn
+import torch.nn.parallel
+import torch.optim
+import torch.optim as optim
+import tqdm
 
 FILE = Path(__file__).resolve()
 
@@ -21,8 +17,8 @@ ROOT = FILE.parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 
-from utils import init_logger, torch_distributed_zero_first, AverageMeter, distributed_concat
-from utils import get_scheduler, parser
+from utils import init_logger, AverageMeter
+from utils import parser
 
 from dataset import ClsDataset, train_transform, val_transform
 from cls_models import ClsModel
@@ -112,7 +108,8 @@ def train(rank, local_rank, device, args):
             model.eval()
             with torch.no_grad():
                 preds, labels = [], []
-                eval_pbar = tqdm.tqdm(val_loader, desc=f'epoch {epoch + 1} / {args.epochs} evaluating', position=1, disable=False if rank in [-1, 0] else True)
+                eval_pbar = tqdm.tqdm(val_loader, desc=f'epoch {epoch + 1} / {args.epochs} evaluating', position=1,
+                                      disable=False if rank in [-1, 0] else True)
                 for step, (img, target, _) in enumerate(eval_pbar):
                     img = img.to(device)
                     target = target.to(device)

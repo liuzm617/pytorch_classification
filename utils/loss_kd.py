@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 def loss_fn_kd(outputs, labels, teacher_outputs, T, alpha):
     """
     Compute the knowledge-distillation (KD) loss given outputs, labels.
@@ -10,8 +11,8 @@ def loss_fn_kd(outputs, labels, teacher_outputs, T, alpha):
     and student expects the input tensor to be log probabilities!
     """
 
-    KD_loss = nn.KLDivLoss()(F.log_softmax(outputs/T, dim=1),
-                             F.softmax(teacher_outputs/T, dim=1)) * (alpha * T * T) + \
+    KD_loss = nn.KLDivLoss()(F.log_softmax(outputs / T, dim=1),
+                             F.softmax(teacher_outputs / T, dim=1)) * (alpha * T * T) + \
               F.cross_entropy(outputs, labels) * (1. - alpha)
 
     return KD_loss

@@ -1,6 +1,5 @@
-
 import torch.nn as nn
-import torch.nn.functional as F
+
 
 class LabelSmoothingCrossEntropy(nn.Module):
     def __init__(self, eps=0.1, reduction='mean'):
@@ -11,13 +10,13 @@ class LabelSmoothingCrossEntropy(nn.Module):
     def forward(self, output, target):
         c = output.size()[-1]
         log_preds = F.log_softmax(output, dim=-1)
-        if self.reduction=='sum':
+        if self.reduction == 'sum':
             loss = -log_preds.sum()
         else:
             loss = -log_preds.sum(dim=-1)
-            if self.reduction=='mean':
+            if self.reduction == 'mean':
                 loss = loss.mean()
-        return loss*self.eps/c + (1-self.eps) * F.nll_loss(log_preds, target, reduction=self.reduction)
+        return loss * self.eps / c + (1 - self.eps) * F.nll_loss(log_preds, target, reduction=self.reduction)
 
 
 if __name__ == '__main__':
@@ -29,6 +28,6 @@ if __name__ == '__main__':
     print('lbs:', lbs, lbs.size())
 
     import torch.nn.functional as F
-    
+
     loss = criterion(out, lbs)
     print('loss:', loss)

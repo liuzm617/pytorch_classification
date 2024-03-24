@@ -5,13 +5,14 @@
 # @github : https://github.com/lxztju
 import numpy as np
 
+
 def adjust_learning_rate_step(optimizer, learning_rate_base, gamma, epoch, step_index, iteration, epoch_size):
     """Sets the learning rate
     # Adapted from PyTorch Imagenet example:
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
     if epoch < 4:
-        lr = 1e-6 + (learning_rate_base-1e-6) * iteration / (epoch_size * 5)
+        lr = 1e-6 + (learning_rate_base - 1e-6) * iteration / (epoch_size * 5)
     else:
         lr = learning_rate_base * (gamma ** (step_index))
     for param_group in optimizer.param_groups:
@@ -20,18 +21,16 @@ def adjust_learning_rate_step(optimizer, learning_rate_base, gamma, epoch, step_
 
 
 def adjust_learning_rate_cosine(optimizer, global_step, learning_rate_base, total_steps, warmup_steps):
-
     lr = cosine_decay_with_warmup(global_step,
-                             learning_rate_base,
-                             total_steps,
-                             warmup_learning_rate=0.0,
-                             warmup_steps=warmup_steps,
-                             hold_base_rate_steps=0)
+                                  learning_rate_base,
+                                  total_steps,
+                                  warmup_learning_rate=0.0,
+                                  warmup_steps=warmup_steps,
+                                  hold_base_rate_steps=0)
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
     return lr
-
 
 
 def cosine_decay_with_warmup(global_step,
@@ -88,5 +87,3 @@ def cosine_decay_with_warmup(global_step,
         learning_rate = np.where(global_step < warmup_steps, warmup_rate,
                                  learning_rate)
     return np.where(global_step > total_steps, 0.0, learning_rate)
-
-

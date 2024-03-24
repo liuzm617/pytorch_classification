@@ -1,42 +1,38 @@
 import os
-import tqdm
-import time
-import shutil
-
-
-import numpy as np
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim
-from torch.nn import functional as F
-import torch.distributed as dist
-
 import sys
 from pathlib import Path
+
+import numpy as np
+import torch.backends.cudnn as cudnn
+import torch.distributed as dist
+import torch.nn.parallel
+import torch.optim
+import tqdm
+
 FILE = Path(__file__).resolve()
 
 ROOT = FILE.parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 
-from utils import  init_logger, torch_distributed_zero_first, AverageMeter, distributed_concat
-from utils import  get_scheduler, parser
-        
-from dataset import ClsDataset, train_transform, val_transform
+from utils import init_logger, torch_distributed_zero_first, distributed_concat
+from utils import parser
+
+from dataset import ClsDataset, val_transform
 from cls_models import ClsModel
 
+
 def evaluate(rank, local_rank, device, args):
-    
     check_rootfolders()
     logger = init_logger(log_file=args.output + f'/log', rank=rank)
-    
+
     with torch_distributed_zero_first(rank):
         val_dataset = ClsDataset(
-            list_file = args.val_list,
-            transform = val_transform(size=args.input_size)
+            list_file=args.val_list,
+            transform=val_transform(size=args.input_size)
         )
 
-    val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset, rank=rank,shuffle=False)
+    val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset, rank=rank, shuffle=False)
 
     val_loader = torch.utils.data.DataLoader(
         val_dataset,
@@ -46,9 +42,7 @@ def evaluate(rank, local_rank, device, args):
 
     print('val_loader is ready!!!')
 
-        
     model = ClsModel(args.model_name, args.num_classes, args.is_pretrained)
-
 
     if args.tune_from and os.path.exists(args.tune_from):
         print(f'loading model from {args.tune_from}')
@@ -56,13 +50,13 @@ def evaluate(rank, local_rank, device, args):
         model.load_state_dict(sd)
     else:
         raise ValueError("the path of model weights is not exist!")
-        
+
     model.to(device)
-    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank, find_unused_parameters=True)     
-    
+    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank,
+                                                      find_unused_parameters=True)
+
     cudnn.benchmark = True
 
-        
     for k, v in sorted(vars(args).items()):
         logger.info(f'{k} = {v}')
 
@@ -93,20 +87,21 @@ def evaluate(rank, local_rank, device, args):
         predicts = predicts.cpu().numpy()
         if rank == 0:
             from sklearn import metrics
-            report = metrics.classification_report(labels, predicts, target_names=['{}'.format(x) for x in range(args.num_classes)],
+            report = metrics.classification_report(labels, predicts,
+                                                   target_names=['{}'.format(x) for x in range(args.num_classes)],
                                                    digits=4, labels=range(args.num_classes))
-            
+
             confusion = metrics.confusion_matrix(labels, predicts)
             print(report)
             print(confusion)
-            performance = np.sum(labels==predicts) / len(labels)
+            performance = np.sum(labels == predicts) / len(labels)
             print(performance)
             np.save(os.path.join(args.output, f"labels"), labels)
             np.save(os.path.join(args.output, f"scores"), scores)
             np.save(os.path.join(args.output, f"predicts"), predicts)
             logger.info(args.output)
 
-            
+
 def check_rootfolders():
     """Create log and model folder"""
     folders_util = [args.output]
@@ -115,7 +110,6 @@ def check_rootfolders():
 
 
 def distributed_init(backend="gloo", port=None):
-
     num_gpus = torch.cuda.device_count()
 
     rank = int(os.environ["RANK"])
@@ -128,17 +122,17 @@ def distributed_init(backend="gloo", port=None):
         world_size=world_size,
         rank=rank,
     )
-            
+
+
 if __name__ == '__main__':
-    
     args = parser.parse_args()
-    distributed_init(backend = args.backend)
+    distributed_init(backend=args.backend)
     rank = int(os.environ["RANK"])
     local_rank = int(os.environ["LOCAL_RANK"])
     device = torch.device("cuda", local_rank)
 
     args.world_size = int(os.environ["WORLD_SIZE"])
-    
+
     print(f"[init] == local rank: {local_rank}, global rank: {rank} == devices: {device}")
-    
+
     evaluate(rank, local_rank, device, args)

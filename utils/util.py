@@ -1,8 +1,8 @@
 import logging
-import torch
-import random 
 from pathlib import Path
+
 import numpy as np
+import torch
 
 
 def init_logger(log_file=None, rank=-1):
@@ -32,7 +32,6 @@ def init_logger(log_file=None, rank=-1):
     return logger
 
 
-
 def distributed_concat(tensor, num_total_examples):
     output_tensors = [tensor.clone() for _ in range(torch.distributed.get_world_size())]
     torch.distributed.all_gather(output_tensors, tensor)
@@ -42,6 +41,8 @@ def distributed_concat(tensor, num_total_examples):
 
 
 from contextlib import contextmanager
+
+
 # 在某个进程中优先执行A操作，其他进程等待其执行完成后再执行A操作
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
@@ -50,7 +51,7 @@ def torch_distributed_zero_first(local_rank: int):
     """
     if local_rank not in [-1, 0]:
         torch.distributed.barrier()
-    yield   #中断后执行上下文代码，然后返回到此处继续往下执行
+    yield  # 中断后执行上下文代码，然后返回到此处继续往下执行
     if local_rank == 0:
         torch.distributed.barrier()
 

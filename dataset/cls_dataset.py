@@ -1,10 +1,8 @@
 import os
-import string
-from PIL import Image
 
 import torch
+from PIL import Image
 from torch.utils.data import Dataset
-import numpy as np
 
 
 class ImageInfo:
